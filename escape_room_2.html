@@ -1331,9 +1331,13 @@
             const panelY = 12;
             const panelW = W - 48;
             const hasCode = !!question.code;
-            const panelH = hasCode ? 165 : 100;
+            
+            const codeLines = hasCode ? question.code.split('\n') : [];
+            const numLines = codeLines.length;
+            const codeH = hasCode ? Math.max(72, numLines * 24 + 18) : 0;
+            const panelH = hasCode ? (80 + codeH + 16) : 95;
 
-            ctx.fillStyle = 'rgba(8, 14, 28, 0.94)';
+            ctx.fillStyle = 'rgba(8, 14, 28, 0.95)';
             ctx.strokeStyle = '#38568F';
             ctx.lineWidth = 2;
             ctx.shadowColor = 'rgba(167, 139, 250, 0.3)';
@@ -1361,8 +1365,7 @@
             drawWrappedTextLeft(ctx, question.prompt, panelX + 18, panelY + 48, panelW - 36, 22);
 
             if (hasCode) {
-                const codeY = panelY + 80;
-                const codeH = 70;
+                const codeY = panelY + 76;
                 ctx.fillStyle = 'rgba(2, 5, 13, 0.96)';
                 ctx.strokeStyle = '#38568F';
                 ctx.lineWidth = 1.5;
@@ -1372,12 +1375,9 @@
                 ctx.stroke();
 
                 ctx.fillStyle = '#5EEAD4';
-                ctx.font = '700 14px "JetBrains Mono", monospace';
-                const codeLines = question.code.split('\n');
+                ctx.font = '700 15px "JetBrains Mono", monospace';
                 codeLines.forEach((cline, idx) => {
-                    if (idx < 3) {
-                        ctx.fillText(cline, panelX + 28, codeY + 24 + idx * 20);
-                    }
+                    ctx.fillText(cline, panelX + 28, codeY + 26 + idx * 24);
                 });
             }
 
