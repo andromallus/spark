@@ -1323,6 +1323,38 @@
             /* ---- 8. CABINA Y BARRA HUD SCI-FI ABAJO ---- */
             renderCockpitHUD(W, H, viewH);
 
+            /* ---- 9. NOTIFICACIÓN HUD EN CANVAS (BIEN HECHO / DESTRUIDA) ---- */
+            if (canvasToast.timer > 0) {
+                canvasToast.timer--;
+                ctx.save();
+                const tw = 860;
+                const th = 85;
+                const tx = (W - tw) / 2;
+                const ty = 250;
+
+                ctx.fillStyle = canvasToast.type === 'ok' ? 'rgba(6, 40, 32, 0.96)' : 'rgba(44, 10, 14, 0.96)';
+                ctx.strokeStyle = canvasToast.type === 'ok' ? '#5EEAD4' : '#F2545B';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = ctx.strokeStyle;
+                ctx.shadowBlur = 25;
+
+                ctx.beginPath();
+                ctx.roundRect(tx, ty, tw, th, 14);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = canvasToast.type === 'ok' ? '#5EEAD4' : '#F2545B';
+                ctx.font = '900 19px "Orbitron", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(canvasToast.title, W / 2, ty + 33);
+
+                ctx.fillStyle = '#EEF4FC';
+                ctx.font = '600 13.5px "Inter", sans-serif';
+                ctx.fillText(canvasToast.subtext, W / 2, ty + 60);
+
+                ctx.restore();
+            }
+
             requestAnimationFrame(drawScene);
         }
 
@@ -1616,6 +1648,8 @@
                     });
                 }
             }
+
+            destroyedDoors[doorIndex] = true;
 
             const correcta = question.responder(doorIndex);
             juego.guardarProgreso();
