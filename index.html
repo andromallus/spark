@@ -1156,6 +1156,7 @@
                 const cxPos = doorCenters[i];
                 const x = cxPos - doorW / 2;
                 const isTargeted = (targetedDoorIdx === i);
+                const hp = doorHP[i];
 
                 ctx.save();
                 ctx.translate(x, doorY);
@@ -1188,46 +1189,38 @@
                 ctx.stroke();
                 ctx.shadowBlur = 0;
 
-                ctx.fillStyle = isTargeted ? '#5EEAD4' : '#A78BFA';
-                ctx.font = '900 24px "Orbitron", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(`[ ${optLetters[i]} ]`, doorW / 2, 38);
-
-                ctx.fillStyle = '#EEF4FC';
-                ctx.font = '600 13.5px "Inter", sans-serif';
-                ctx.textAlign = 'center';
-                drawWrappedText(ctx, optText, doorW / 2, 70, doorW - 24, 19);
-
-                ctx.fillStyle = isTargeted ? '#5EEAD4' : '#64748B';
-                ctx.font = '700 11px "Orbitron", sans-serif';
-                ctx.fillText(`ESCUDO: ${doorHP[i]}/3 IMPACTOS`, doorW / 2, doorH - 14);
-
-                if (doorHP[i] < 3) {
-                    ctx.strokeStyle = '#F2545B';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                }
-
                 ctx.fillStyle = isTargeted ? '#5EEAD4' : '#38568F';
-                ctx.fillRect(6, 6, doorW - 12, 36);
+                ctx.fillRect(6, 6, doorW - 12, 34);
 
                 ctx.fillStyle = isTargeted ? '#040914' : '#EEF4FC';
                 ctx.font = '900 16px "Orbitron", sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(`OPCIÓN  [ ${optLetters[i]} ]`, doorW / 2, 30);
+                ctx.fillText(`OPCIÓN  [ ${optLetters[i]} ]`, doorW / 2, 28);
 
                 ctx.fillStyle = 'rgba(2, 5, 13, 0.8)';
-                ctx.fillRect(doorW / 2 - 40, 44, 80, 6);
+                ctx.fillRect(doorW / 2 - 40, 46, 80, 6);
                 ctx.fillStyle = hp === 3 ? '#5EEAD4' : (hp === 2 ? '#F2C14E' : '#F2545B');
-                ctx.fillRect(doorW / 2 - 40, 44, (80 * hp) / 3, 6);
+                ctx.fillRect(doorW / 2 - 40, 46, (80 * hp) / 3, 6);
 
                 ctx.fillStyle = '#FFFFFF';
-                ctx.shadowColor = '#000000';
-                ctx.shadowBlur = 4;
-                ctx.font = '700 14px "JetBrains Mono", monospace';
+                ctx.font = '600 13.5px "Inter", sans-serif';
+                ctx.textAlign = 'center';
+                drawWrappedText(ctx, optText, doorW / 2, 75, doorW - 24, 19);
 
-                const maxTextW = doorW - 24;
-                drawWrappedText(ctx, optText, doorW / 2, 120, maxTextW, 20);
+                ctx.fillStyle = isTargeted ? '#5EEAD4' : '#64748B';
+                ctx.font = '700 11px "Orbitron", sans-serif';
+                ctx.fillText(`ESCUDO: ${hp}/3 IMPACTOS`, doorW / 2, doorH - 14);
+
+                if (hp < 3) {
+                    ctx.strokeStyle = '#F2545B';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(30, 20); ctx.lineTo(60, 80); ctx.lineTo(45, 120);
+                    if (hp === 1) {
+                        ctx.moveTo(doorW - 40, 30); ctx.lineTo(doorW - 70, 90); ctx.lineTo(doorW - 30, 150);
+                    }
+                    ctx.stroke();
+                }
 
                 if (isTargeted) {
                     ctx.strokeStyle = '#5EEAD4';
