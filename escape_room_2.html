@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STARSHIP CODE SHOOTER — Escape Room de Programación 2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,400&family=Orbitron:wght@400;700;900&family=Inter:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #04060E;
+            --bg-2: #080D1A;
+            --panel: #0D1527;
+            --panel-2: #142038;
+            --border: #1E3054;
+            --border-bright: #38568F;
+            --accent: #F2C14E;
+            --accent-glow: rgba(242, 193, 78, 0.45);
+            --ok: #5EEAD4;
+            --ok-glow: rgba(94, 234, 212, 0.45);
+            --danger: #F2545B;
+            --danger-glow: rgba(242, 84, 91, 0.45);
+            --purple: #A78BFA;
+            --purple-glow: rgba(167, 139, 250, 0.45);
+            --text: #EEF4FC;
+            --text-dim: #8899B8;
+            --pixel: 'Press Start 2P', monospace;
+            --orbitron: 'Orbitron', sans-serif;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 16px;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(167, 139, 250, 0.15), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(94, 234, 212, 0.1), transparent 45%),
+                var(--bg);
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1240px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* ---- Header HUD ---- */
+        .hud-header {
+            background: var(--panel);
+            border: 1.5px solid var(--border-bright);
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(167, 139, 250, 0.15);
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #1C2B4B, var(--bg-2));
+            border: 1.5px solid var(--ok);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 0 12px var(--ok-glow);
+        }
+
+        .brand-text h1 {
+            font-family: var(--orbitron);
+            font-size: 17px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            margin: 0;
+            text-transform: uppercase;
+            color: var(--ok);
+            text-shadow: 0 0 10px var(--ok-glow);
+        }
+
+        .brand-text p {
+            margin: 2px 0 0;
+            font-size: 12px;
+            color: var(--text-dim);
+            font-family: var(--mono);
+        }
+
+        .hud-stats {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-family: var(--mono);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-badge .val {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* ---- Viewport Canvas ---- */
+        .viewport-wrapper {
+            position: relative;
+            width: 100%;
+            border-radius: 16px;
+            border: 2px solid var(--border-bright);
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.85), 0 0 35px rgba(167, 139, 250, 0.2);
+        }
+
+        canvas#gameCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+            cursor: crosshair;
+        }
+
+        .viewport-hint {
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(4, 6, 14, 0.92);
+            border: 1px solid var(--purple);
+            color: var(--text);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 700;
+            pointer-events: none;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
+            text-align: center;
+        }
+
+        .viewport-hint span {
+            color: var(--ok);
+        }
+
+        .feedback-banner {
+            background: var(--panel);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: var(--mono);
+            font-size: 14px;
+            display: none;
+        }
+
+        .feedback-banner.visible {
+            display: block;
+        }
+
+        .feedback-banner.ok {
+            border-color: var(--ok);
+            background: rgba(94, 234, 212, 0.14);
+            color: var(--ok);
+        }
+
+        .feedback-banner.bad {
+            border-color: var(--danger);
+            background: rgba(242, 84, 91, 0.14);
+            color: var(--danger);
+        }
+
+        /* ---- Modals ---- */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 5, 12, 0.94);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: var(--panel);
+            border: 2px solid var(--border-bright);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 680px;
+            padding: 28px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), 0 0 35px var(--purple-glow);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-backdrop.active .modal-card {
+            transform: scale(1);
+        }
+
+        .pixel-title {
+            font-family: var(--orbitron);
+            font-weight: 900;
+            font-size: 20px;
+            color: var(--ok);
+            margin: 0 0 12px;
+            text-shadow: 0 0 12px var(--ok-glow);
+            letter-spacing: 0.05em;
+        }
+
+        .lead {
+            color: var(--text-dim);
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0 0 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+            font-family: var(--mono);
+            text-transform: uppercase;
+        }
+
+        input[type=text] {
+            width: 100%;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 13px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: var(--sans);
+            margin-bottom: 18px;
+        }
+
+        input[type=text]:focus {
+            outline: none;
+            border-color: var(--ok);
+            box-shadow: 0 0 12px var(--ok-glow);
+        }
+
+        .btn {
+            font-family: var(--orbitron);
+            font-weight: 700;
+            font-size: 13px;
+            background: var(--ok);
+            color: #030C0A;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--ok-glow);
+        }
+
+        .btn.secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border-bright);
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .sound-btn {
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: var(--mono);
+            font-size: 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="game-container">
+        <!-- Header HUD -->
+        <header class="hud-header">
+            <div class="brand-group">
+                <div class="brand-logo">🚀</div>
+                <div class="brand-text">
+                    <h1>STARSHIP CODE SHOOTER</h1>
+                    <p>Programación 2 · Escape Room Espacial</p>
+                </div>
+            </div>
+
+            <div class="hud-stats">
+                <div class="stat-badge" id="player-badge" style="display:none;">
+                    <span class="val" id="player-name-val">Piloto</span>
+                </div>
+                <div class="stat-badge" id="timer-badge" style="display:none;">
+                    <span class="val" id="clock-val">00:00</span>
+                </div>
+                <button class="sound-btn" id="btn-sound-toggle">🎵 Música MP3 / Audio: ON</button>
+                <button class="btn secondary" id="btn-restart-game" style="display:none; padding:5px 10px;">🔄
+                    Reiniciar</button>
+            </div>
+        </header>
+
+        <!-- Viewport Canvas -->
+        <div class="viewport-wrapper">
+            <canvas id="gameCanvas" width="1280" height="720"></canvas>
+            <div class="viewport-hint">
+                🎯 <span>Dispara 3 Veces</span> a la puerta para destruirla · <span>CLIC o ESPACIO</span> para disparar
+                [A, B, C, D]
+            </div>
+        </div>
+
+        <div class="feedback-banner" id="feedback-banner"></div>
+    </div>
+
+    <!-- Modal: Landing Start -->
+    <div class="modal-backdrop active" id="modal-landing">
+        <div class="modal-card">
+            <h2 class="pixel-title">🚀 STARSHIP CODE SHOOTER</h2>
+            <p class="lead">
+                Pilotas la <strong>Nave Interestelar Cygnus-X</strong>. Tienes <strong>30 segundos</strong> por intento
+                para leer el reto y disparar a la puerta correcta.
+                <br><br>
+                🎯 <strong>Mecánica de Juego:</strong>
+                <br>• <strong>Impactos:</strong> Cada puerta requiere <strong>3 disparos de plasma</strong> para
+                destruirse por completo.
+                <br>• <strong>Orbe Verde (🟢):</strong> Te sigue magnéticamente y se absorbe siempre. Al absorberla
+                avanzas de reto.
+                <br>• <strong>Orbe Amarilla (🟡) y Desintegración:</strong> Te sigue y se absorbe. Al absorberla sufres
+                daño y <strong>esa opción equivocada se desintegra</strong> de la pantalla, dándote una segunda
+                oportunidad.
+                <br>• <strong>Soporte de Música MP3:</strong> Puedes agregar tu canción favorita guardando un archivo
+                <code>background.mp3</code> en la misma carpeta.
+            </p>
+
+            <label for="nombre">Nombre Completo del Alumno</label>
+            <input type="text" id="nombre" placeholder="Ej. Ana Torres" autocomplete="off" />
+
+            <label for="grupo">Grupo / Matrícula</label>
+            <input type="text" id="grupo" placeholder="Ej. 4A o A01234567" autocomplete="off" />
+
+            <div class="btn-row">
+                <button class="btn" id="btn-start-game">⚡ INICIAR MISIÓN →</button>
+                <button class="btn secondary" id="btn-resume-game" style="display:none;">📂 Reanudar Partida</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Game Over / Nave Explotada -->
+    <div class="modal-backdrop" id="modal-gameover">
+        <div class="modal-card" style="text-align:center;">
+            <h2 class="pixel-title" style="color:var(--danger);">💥 ¡NAVE DESTRUIDA!</h2>
+            <p class="lead">Has acumulado <strong>6 errores</strong> y el casco de la nave ha colapsado.</p>
+            <div
+                style="font-family:var(--orbitron); font-size:32px; font-weight:900; color:var(--danger); margin:14px 0;">
+                ERRORES: 6 / 6</div>
+            <div class="btn-row" style="justify-content:center; margin-top:16px;">
+                <button class="btn" id="btn-restart-gameover">🔄 REINICIAR MISIÓN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Final Victory Screen -->
+    <div class="modal-backdrop" id="modal-final">
+        <div class="modal-card" style="text-align:center;">
+            <h2 class="pixel-title">🏆 ¡SECTOR FINAL COMPLETADO Y ESCAPE VICTORIOSO!</h2>
+            <div style="font-family:var(--orbitron); font-size:38px; font-weight:900; color:var(--ok); margin:14px 0;"
+                id="final-score">
+                0 / 150</div>
+            <p class="lead">Tiempo total de juego: <strong id="final-time" style="color:var(--ok);">00:00</strong></p>
+
+            <div id="final-breakdown"
+                style="text-align:left; background:var(--bg-2); padding:14px; border-radius:8px; border:1px solid var(--border); margin:14px 0;">
+            </div>
+
+            <p class="feedback-banner visible" id="supabase-status" style="text-align:center;">Enviando resultados al
+                profesor…</p>
+
+            <div class="btn-row" style="justify-content:center; margin-top:16px;">
+                <button class="btn" id="btn-restart-final">🔄 JUGAR DE NUEVO</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        /* =========================================================
+           1. CONFIGURACIÓN SUPABASE Y PREGUNTAS
+           ========================================================= */
+        const SUPABASE_URL = "https://rruysfviqzrvaycnjbqu.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJydXlzZnZpcXpydmF5Y25qYnF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NjMzMzcsImV4cCI6MjA4OTQzOTMzN30.0g5P0hO1fxpNfNYpZFR58SrJCqMbL40xol0xSpQTLes";
+
+        let supabaseClient = null;
+        try {
+            if (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 10) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) { console.warn("Supabase no configurado aún:", e); }
+
+        const ROOMS_DATA = [
+            {
+                id: "arreglos",
+                label: "Arreglos",
+                title: "Sector 1 · Los Arreglos",
+                codeFrag: "7",
+                questions: [
+                    {
+                        type: "theory",
+                        prompt: "¿Qué hace pop() en un arreglo?",
+                        options: ["Elimina el primer elemento", "Agrega un elemento al final", "Elimina el último elemento", "Agrega al inicio"],
+                        answer: 2,
+                        explain: "pop() elimina y devuelve el último elemento del arreglo."
+                    },
+                    {
+                        type: "predict",
+                        prompt: "¿Qué imprime este código?",
+                        code: `let arr = [1, 2, 3];\narr.push(4);\narr.pop();\nconsole.log(arr);`,
+                        options: ["[1, 2, 3]", "[1, 2, 3, 4]", "[2, 3, 4]", "Error"],
+                        answer: 0,
+                        explain: "push agrega el 4, luego pop lo elimina: queda [1, 2, 3]."
+                    },
+                    {
+                        type: "fix",
+                        prompt: "Este código quiere agregar un 3 al arreglo. ¿Cuál es correcto?",
+                        code: `let arr = [1, 2];\narr.push[3];`,
+                        options: ["arr.push[3]", "arr.pop(3)", "arr.push = 3", "arr.push(3)"],
+                        answer: 3,
+                        explain: "push() se llama con paréntesis, no con corchetes."
+                    },
+                    {
+                        type: "theory",
+                        prompt: "¿Cómo obtienes el número de elementos de un arreglo?",
+                        options: ["arr.size", "arr.count()", "arr.length", "arr.total"],
+                        answer: 2,
+                        explain: "length es la propiedad que indica cuántos elementos tiene."
+                    },
+                    {
+                        type: "predict",
+                        prompt: "¿Qué imprime este código?",
+                        code: `let arr = ["a", "b", "c"];\nconsole.log(arr[1]);`,
+                        options: ["a", "b", "c", "undefined"],
+                        answer: 1,
+                        explain: "Los arreglos empiezan en índice 0, así que arr[1] es 'b'."
+                    }
+                ]
+            },
+            {
+                id: "clases",
+                label: "Clases",
+                title: "Sector 2 · Las Clases POO",
+                codeFrag: "F",
+                questions: [
+                    {
+                        type: "theory",
+                        prompt: "¿Qué palabra crea una instancia de una clase?",
+                        options: ["create", "instance", "new", "make"],
+                        answer: 2,
+                        explain: "new invoca el constructor y crea el objeto."
+                    },
+                    {
+                        type: "predict",
+                        prompt: "¿Qué imprime este código?",
+                        code: `class Animal {\n  hablar(){ return "ruido"; }\n}\nclass Perro extends Animal {\n  hablar(){ return "ladra"; }\n}\nconsole.log(new Perro().hablar());`,
+                        options: ["ladra", "Error", "ruido", "undefined"],
+                        answer: 0,
+                        explain: "Perro sobrescribe el método hablar()."
+                    },
+                    {
+                        type: "fix",
+                        prompt: "El constructor no guarda el dato. ¿Cuál es correcto?",
+                        code: `constructor(precio) {\n  precio = precio;\n}`,
+                        options: ["self.precio = precio;", "this.precio = precio;", "precio = precio;", "var precio = this;"],
+                        answer: 1,
+                        explain: "Se necesita this.precio para guardarlo en la instancia."
+                    }
+                ]
+            },
+            {
+                id: "localstorage",
+                label: "LocalStorage",
+                title: "Sector 3 · LocalStorage",
+                codeFrag: "3",
+                questions: [
+                    {
+                        type: "theory",
+                        prompt: "¿Qué método guarda un dato en localStorage?",
+                        options: ["write()", "setItem()", "save()", "put()"],
+                        answer: 1,
+                        explain: "setItem(clave, valor) guarda el dato."
+                    },
+                    {
+                        type: "predict",
+                        prompt: "¿Qué imprime este código?",
+                        code: `localStorage.setItem('x', JSON.stringify({a:1}));\nconsole.log(typeof localStorage.getItem('x'));`,
+                        options: ["undefined", "json", "string", "object"],
+                        answer: 2,
+                        explain: "localStorage siempre guarda strings."
+                    },
+                    {
+                        type: "fix",
+                        prompt: "Falta convertir el dato guardado. ¿Cuál es correcto?",
+                        code: `let obj = localStorage.getItem('user');\nconsole.log(obj.nombre);`,
+                        options: ["let obj = JSON.stringify(datos);", "let obj = datos;", "let obj = JSON.parse(datos);", "let obj = Object(datos);"],
+                        answer: 2,
+                        explain: "JSON.parse convierte el string de vuelta a objeto."
+                    }
+                ]
+            },
+            {
+                id: "mixta",
+                label: "Sector Mixto",
+                title: "Sector 4 · Arreglos + Condicionales",
+                codeFrag: "A",
+                questions: [
+                    {
+                        type: "predict",
+                        prompt: "¿Qué imprime este código?",
+                        code: `let nums = [1,2,3,4];\nlet r = nums.filter(n => n % 2 === 0).reduce((a,n) => a+n, 0);\nconsole.log(r);`,
+                        options: ["9", "6", "10", "4"],
+                        answer: 1,
+                        explain: "filter deja [2,4]; reduce los suma: 2+4=6."
+                    },
+                    {
+                        type: "theory",
+                        prompt: "¿Cuál es la diferencia entre forEach() y map()?",
+                        options: ["forEach() modifica el original", "map() solo usa números", "map() devuelve un arreglo nuevo; forEach() no", "Son idénticos"],
+                        answer: 2,
+                        explain: "map() transforma y devuelve; forEach() solo recorre."
+                    },
+                    {
+                        type: "predict",
+                        prompt: "¿Qué imprime este código?",
+                        code: `let x = 5;\nif (x > 3) {\n  console.log("mayor");\n} else {\n  console.log("menor");\n}`,
+                        options: ["menor", "mayor", "Error", "undefined"],
+                        answer: 1,
+                        explain: "5 es mayor que 3, así que se ejecuta el bloque if."
+                    },
+                    {
+                        type: "fix",
+                        prompt: "Este condicional no compara, está asignando. ¿Cuál es correcto?",
+                        code: `let x = 10;\nif (x = 10) {\n  console.log("diez");\n}`,
+                        options: ["if (x = 10)", "if (x == 10)", "if x === 10", "if (x === 10)"],
+                        answer: 3,
+                        explain: "Se necesita === para comparar, con paréntesis alrededor de la condición."
+                    },
+                    {
+                        type: "fix",
+                        prompt: "Se busca el primer número mayor a 10. ¿Cuál es correcto?",
+                        code: `nums.find(n > 10);`,
+                        options: ["nums.findIndex(10)", "nums.find[n > 10]", "nums.find(n => n > 10)", "nums.find(n > 10)"],
+                        answer: 2,
+                        explain: "find() necesita una función: n => n > 10."
+                    }
+                ]
+            },
+            {
+                id: "boveda",
+                label: "La Bóveda",
+                title: "Sector Final · La Bóveda Principal",
+                codeFrag: "9",
+                questions: [
+                    {
+                        type: "fix",
+                        prompt: "Falta guardar bien la tarea. ¿Cuál es correcto?",
+                        code: `agregar(tarea) {\n  lista.push(tarea);\n  localStorage.setItem('t', lista);\n}`,
+                        options: ["lista.add(tarea);", "this.lista.add(tarea);", "lista.push(tarea); localStorage.setItem('t', lista);", "this.lista.push(tarea); localStorage.setItem('t', JSON.stringify(this.lista));"],
+                        answer: 3,
+                        explain: "Se necesita this.lista y JSON.stringify para guardarlo."
+                    },
+                    {
+                        type: "predict",
+                        prompt: "¿Qué imprime este código?",
+                        code: `let lista = [{nombre:"Ana", nota:9}, {nombre:"Luis", nota:6}];\nlet r = lista.filter(a => a.nota >= 7).map(a => a.nombre);\nconsole.log(r);`,
+                        options: ["[]", "['Ana','Luis']", "[9,6]", "['Ana']"],
+                        answer: 3,
+                        explain: "Solo Ana tiene nota >= 7."
+                    },
+                    {
+                        type: "theory",
+                        prompt: "¿Cómo guardas un arreglo de objetos para que sobreviva al recargar?",
+                        options: ["console.log()", "Guardándolos en la clase", "JSON.stringify() y JSON.parse() con localStorage", "Solo con variables globales"],
+                        answer: 2,
+                        explain: "localStorage solo guarda strings; hay que serializar/deserializar."
+                    },
+                    {
+                        type: "predict",
+                        prompt: "¿Qué imprime este código?",
+                        code: `let nums = [1,2,3,4,5];\nlet mayores = [];\nfor (let n of nums) {\n  if (n > 2) {\n    mayores.push(n);\n  }\n}\nconsole.log(mayores);`,
+                        options: ["[1,2]", "[3,4,5]", "[1,2,3,4,5]", "[]"],
+                        answer: 1,
+                        explain: "El if filtra solo los números mayores a 2, y push los agrega uno por uno."
+                    }
+                ]
+            }
+        ];
+
+        /* =========================================================
+           2. SISTEMA DE AUDIO MP3 Y SINTETIZADOR CON FALLBACK
+           ========================================================= */
+        const AUDIO_CONFIG = {
+            bgmSrc: "background.mp3",       // Tu archivo MP3 de música de fondo
+            shootSrc: "laser.mp3",          // Tu MP3 de disparo (opcional)
+            hurtSrc: "explosion.mp3",       // Tu MP3 de daño (opcional)
+            victorySrc: "victory.mp3"       // Tu MP3 de victoria (opcional)
+        };
+
+        class SciFiAudioSystem {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+
+                // Reproductor MP3 para música de fondo BGM
+                this.bgm = new Audio(AUDIO_CONFIG.bgmSrc);
+                this.bgm.loop = true;
+                this.bgm.volume = 0.35;
+
+                // Reproductores de efectos MP3 opcionales
+                this.shootAudio = new Audio(AUDIO_CONFIG.shootSrc);
+                this.hurtAudio = new Audio(AUDIO_CONFIG.hurtSrc);
+                this.victoryAudio = new Audio(AUDIO_CONFIG.victorySrc);
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+                this.playBGM();
+            }
+
+            playBGM() {
+                if (!this.enabled) return;
+                this.bgm.play().catch(e => {
+                    console.log("Nota: Guarda un archivo 'background.mp3' en esta misma carpeta para escuchar música de fondo.");
+                });
+            }
+
+            stopBGM() {
+                this.bgm.pause();
+                this.bgm.currentTime = 0;
+            }
+
+            toggle() {
+                this.enabled = !this.enabled;
+                if (this.enabled) {
+                    this.init();
+                    this.playBGM();
+                } else {
+                    this.bgm.pause();
+                }
+                return this.enabled;
+            }
+
+            playShoot() {
+                if (!this.enabled) return;
+                if (AUDIO_CONFIG.shootSrc && this.shootAudio.readyState >= 2) {
+                    const sound = this.shootAudio.cloneNode();
+                    sound.volume = 0.4;
+                    sound.play().catch(() => this.synthShoot());
+                } else {
+                    this.synthShoot();
+                }
+            }
+
+            synthShoot() {
+                this.init(); if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(850, now);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.15);
+                    gain.gain.setValueAtTime(0.25, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.start(now); osc.stop(now + 0.15);
+                } catch (e) { }
+            }
+
+            playPassOk() {
+                if (!this.enabled) return; this.init(); if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+                        osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, now + i * 0.04);
+                        gain.gain.setValueAtTime(0.2, now + i * 0.04);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.15);
+                        osc.connect(gain); gain.connect(this.ctx.destination);
+                        osc.start(now + i * 0.04); osc.stop(now + i * 0.04 + 0.15);
+                    });
+                } catch (e) { }
+            }
+
+            playHurt() {
+                if (!this.enabled) return;
+                if (AUDIO_CONFIG.hurtSrc && this.hurtAudio.readyState >= 2) {
+                    const sound = this.hurtAudio.cloneNode();
+                    sound.volume = 0.6;
+                    sound.play().catch(() => this.synthHurt());
+                } else {
+                    this.synthHurt();
+                }
+            }
+
+            synthHurt() {
+                this.init(); if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+                    gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.start(now); osc.stop(now + 0.3);
+                } catch (e) { }
+            }
+
+            playVictory() {
+                if (!this.enabled) return;
+                if (AUDIO_CONFIG.victorySrc && this.victoryAudio.readyState >= 2) {
+                    this.victoryAudio.play().catch(() => this.synthVictory());
+                } else {
+                    this.synthVictory();
+                }
+            }
+
+            synthVictory() {
+                this.init(); if (!this.ctx) return;
+                try {
+                    const now = this.ctx.currentTime;
+                    [440, 554.37, 659.25, 880, 1046.50].forEach((freq, i) => {
+                        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+                        osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now + i * 0.06);
+                        gain.gain.setValueAtTime(0.2, now + i * 0.06); gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.25);
+                        osc.connect(gain); gain.connect(this.ctx.destination);
+                        osc.start(now + i * 0.06); osc.stop(now + i * 0.06 + 0.25);
+                    });
+                } catch (e) { }
+            }
+        }
+        const sounds = new SciFiAudioSystem();
+
+        /* =========================================================
+           3. MODELO Y ESTADO DEL JUEGO
+           ========================================================= */
+        class Pregunta {
+            constructor(data) {
+                Object.assign(this, data);
+                this.intentos = 0; this.resuelta = false; this.puntosGanados = 0;
+            }
+            responder(indice) {
+                this.intentos++;
+                const correcta = (indice === this.answer);
+                if (correcta) {
+                    this.resuelta = true;
+                    this.puntosGanados = this.intentos === 1 ? 10 : (this.intentos === 2 ? 5 : 2);
+                } else if (this.intentos >= 3) {
+                    this.resuelta = true;
+                    this.puntosGanados = 0;
+                }
+                return correcta;
+            }
+        }
+
+        class Sala {
+            constructor(data) {
+                this.id = data.id; this.label = data.label; this.title = data.title;
+                this.codeFrag = data.codeFrag;
+                this.preguntas = data.questions.map(q => new Pregunta(q));
+                this.itemCollected = false;
+            }
+            get completa() { return this.preguntas.every(p => p.resuelta); }
+            get puntaje() { return this.preguntas.reduce((a, p) => a + p.puntosGanados, 0); }
+            get puntajeMax() { return this.preguntas.length * 10; }
+        }
+
+        class Juego {
+            constructor() {
+                this.salas = ROOMS_DATA.map(r => new Sala(r));
+                this.nombre = ""; this.grupo = ""; this.startTime = null;
+                this.finished = false; this.currentRoomIdx = 0; this.currentQuestionIdx = 0;
+                this.errores = 0;
+            }
+            get salaActual() { return this.salas[this.currentRoomIdx]; }
+            get preguntaActual() { return this.salaActual ? this.salaActual.preguntas[this.currentQuestionIdx] : null; }
+            get puntajeTotal() { return this.salas.reduce((a, s) => a + s.puntaje, 0); }
+            get puntajeMaxTotal() { return this.salas.reduce((a, s) => a + s.puntajeMax, 0); }
+            get health() { return Math.max(0, Math.round(100 - (this.errores * 16.666))); }
+
+            tiempoSegundos() {
+                if (!this.startTime) return 0;
+                return Math.floor((Date.now() - this.startTime) / 1000);
+            }
+
+            serializar() {
+                return {
+                    nombre: this.nombre, grupo: this.grupo, startTime: this.startTime,
+                    finished: this.finished, currentRoomIdx: this.currentRoomIdx, currentQuestionIdx: this.currentQuestionIdx,
+                    errores: this.errores,
+                    salas: this.salas.map(s => ({
+                        id: s.id, itemCollected: s.itemCollected,
+                        preguntas: s.preguntas.map(p => ({ intentos: p.intentos, resuelta: p.resuelta, puntosGanados: p.puntosGanados }))
+                    }))
+                };
+            }
+
+            restaurar(data) {
+                this.nombre = data.nombre; this.grupo = data.grupo;
+                this.startTime = data.startTime; this.finished = data.finished;
+                if (data.currentRoomIdx !== undefined) this.currentRoomIdx = data.currentRoomIdx;
+                if (data.currentQuestionIdx !== undefined) this.currentQuestionIdx = data.currentQuestionIdx;
+                if (data.errores !== undefined) this.errores = data.errores;
+                data.salas.forEach((sd, i) => {
+                    if (this.salas[i]) {
+                        this.salas[i].itemCollected = sd.itemCollected || false;
+                        sd.preguntas.forEach((pd, j) => {
+                            if (this.salas[i].preguntas[j]) Object.assign(this.salas[i].preguntas[j], pd);
+                        });
+                    }
+                });
+            }
+
+            guardarProgreso() { localStorage.setItem('escape_js_starship_runner_v2', JSON.stringify(this.serializar())); }
+            cargarProgreso() {
+                const raw = localStorage.getItem('escape_js_starship_runner_v2');
+                if (!raw) return false;
+                try { this.restaurar(JSON.parse(raw)); return true; } catch (e) { return false; }
+            }
+            borrarProgreso() { localStorage.removeItem('escape_js_starship_runner_v2'); }
+        }
+
+        const juego = new Juego();
+
+        /* =========================================================
+           4. RENDERIZADOR CANVAS NAVE ESPACIAL Y PUERTAS MULTIDISPARO
+           ========================================================= */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let isAnimating = false;
+        let animTime = 0;
+
+        // Posición horizontal de la nave
+        let shipX = 640;
+        let targetShipX = 640;
+        let shipVelocityX = 0;
+        let selectedDoorIdx = 1;
+
+        // Salud de las puertas (Se requieren 3 disparos para destruirla por completo)
+        let doorHP = [3, 3, 3, 3];
+        let destroyedDoors = [false, false, false, false]; // Puertas desintegradas permanentemente tras error
+
+        // Temporizador 30s
+        let questionTimeLeft = 30;
+        let questionTimerInterval = null;
+        let isProcessingDisparo = false;
+        let isShipExploded = false;
+
+        // Láseres, Fragmentos, Orbes y Partículas
+        let laserBolts = [];
+        let doorShards = [];
+        let activeOrbs = [];
+        let particles = [];
+        let stars = [];
+        let shieldGlow = null;
+        let shieldTimer = 0;
+
+        function initStars() {
+            stars = [];
+            for (let i = 0; i < 140; i++) {
+                stars.push({
+                    x: (Math.random() - 0.5) * 1600,
+                    y: (Math.random() - 0.5) * 1000,
+                    z: Math.random() * 1000 + 1,
+                    size: Math.random() * 2 + 1
+                });
+            }
+        }
+        initStars();
+
+        function resizeCanvas() {
+            canvas.width = 1280;
+            canvas.height = 720;
+        }
+        resizeCanvas();
+
+        function resetearEstadoPuertas() {
+            doorHP = [3, 3, 3, 3];
+            destroyedDoors = [false, false, false, false];
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isShipExploded) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseCanvasX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            targetShipX = Math.max(100, Math.min(canvas.width - 100, mouseCanvasX));
+        });
+
+        canvas.addEventListener('click', () => {
+            if (!isShipExploded) dispararLaserNave();
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (document.getElementById('modal-landing').classList.contains('active')) return;
+            if (document.getElementById('modal-final').classList.contains('active')) return;
+            if (document.getElementById('modal-gameover').classList.contains('active')) return;
+            if (isShipExploded) return;
+
+            const doorCenters = [190, 490, 790, 1090];
+
+            const keyMapDirect = { '1': 0, '2': 1, '3': 2, '4': 3 };
+            if (keyMapDirect[e.key] !== undefined) {
+                selectedDoorIdx = keyMapDirect[e.key];
+                targetShipX = doorCenters[selectedDoorIdx];
+                dispararLaserNave();
+                return;
+            }
+
+            if (e.key === ' ' || e.key === 'Enter') {
+                dispararLaserNave();
+                return;
+            }
+
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                selectedDoorIdx = Math.max(0, selectedDoorIdx - 1);
+                targetShipX = doorCenters[selectedDoorIdx];
+                sounds.playWarp();
+            } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                selectedDoorIdx = Math.min(3, selectedDoorIdx + 1);
+                targetShipX = doorCenters[selectedDoorIdx];
+                sounds.playWarp();
+            }
+        });
+
+        function reiniciarTemporizadorPregunta() {
+            clearInterval(questionTimerInterval);
+            questionTimeLeft = 30;
+            questionTimerInterval = setInterval(() => {
+                if (questionTimeLeft > 0) {
+                    questionTimeLeft--;
+                } else {
+                    tratarTiempoAgotado();
+                }
+            }, 1000);
+        }
+
+        function tratarTiempoAgotado() {
+            const question = juego.preguntaActual;
+            if (!question || isProcessingDisparo || isShipExploded) return;
+
+            isProcessingDisparo = true;
+            sounds.playHurt();
+            juego.errores++;
+            question.intentos++;
+            juego.guardarProgreso();
+            actualizarHUD();
+
+            if (juego.errores >= 6) {
+                explotarNave();
+                return;
+            }
+
+            const feedbackEl = document.getElementById('feedback-banner');
+            feedbackEl.textContent = `✕ ¡TIEMPO AGOTADO (30s)! Daño recibido (Error ${juego.errores}/6). Tienes otra oportunidad.`;
+            feedbackEl.className = 'feedback-banner visible bad';
+            setTimeout(() => {
+                feedbackEl.className = 'feedback-banner';
+                isProcessingDisparo = false;
+                reiniciarTemporizadorPregunta();
+            }, 1500);
+        }
+
+        function startAnimationLoop() {
+            if (!isAnimating) {
+                isAnimating = true;
+                requestAnimationFrame(drawScene);
+            }
+        }
+
+        function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+            const words = text.split(' ');
+            let line = '';
+            let lines = [];
+            for (let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && n > 0) {
+                    lines.push(line.trim());
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line.trim());
+
+            const startY = y - ((lines.length - 1) * lineHeight) / 2;
+            lines.forEach((l, i) => {
+                ctx.fillText(l, x, startY + i * lineHeight);
+            });
+        }
+
+        function drawWrappedTextLeft(ctx, text, x, y, maxWidth, lineHeight) {
+            const words = text.split(' ');
+            let line = '';
+            let lines = [];
+            for (let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && n > 0) {
+                    lines.push(line.trim());
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line.trim());
+
+            lines.forEach((l, i) => {
+                ctx.fillText(l, x, y + i * lineHeight);
+            });
+        }
+
+        function drawScene() {
+            if (!isAnimating) return;
+
+            animTime += 0.025;
+            const W = canvas.width;
+            const H = canvas.height;
+            const viewH = H - 105;
+
+            ctx.clearRect(0, 0, W, H);
+
+            /* ---- 1. ESPACIO PROFUNDO Y FONDO ESTELAR ---- */
+            const bgGrad = ctx.createRadialGradient(W / 2, 300, 10, W / 2, 300, W * 0.85);
+            bgGrad.addColorStop(0, '#0C0B2B');
+            bgGrad.addColorStop(0.5, '#060716');
+            bgGrad.addColorStop(1, '#020308');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, viewH);
+
+            ctx.save();
+            stars.forEach(star => {
+                star.z -= 4;
+                if (star.z <= 0) star.z = 1000;
+
+                const sx = W / 2 + (star.x / star.z) * 500;
+                const sy = 300 + (star.y / star.z) * 350;
+                const r = Math.max(0.6, (1 - star.z / 1000) * star.size * 2.2);
+
+                if (sx >= 0 && sx <= W && sy >= 0 && sy <= viewH) {
+                    ctx.fillStyle = star.z < 300 ? '#5EEAD4' : (star.z < 600 ? '#A78BFA' : '#FFF');
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            ctx.restore();
+
+            /* ---- 2. PUERTAS ESTÁTICAS Y SU SALUD / DESINTEGRACIÓN ---- */
+            const question = juego.preguntaActual;
+            const room = juego.salaActual;
+            const opts = question ? question.options : [];
+
+            const doorW = 250;
+            const doorH = 190;
+            const doorY = 240;
+            const doorCenters = [190, 490, 790, 1090];
+            const optLetters = ['A', 'B', 'C', 'D'];
+
+            let targetedDoorIdx = -1;
+            doorCenters.forEach((cxPos, idx) => {
+                if (Math.abs(shipX - cxPos) < doorW / 2 + 10 && !destroyedDoors[idx]) targetedDoorIdx = idx;
+            });
+
+            opts.forEach((optText, i) => {
+                const cxPos = doorCenters[i];
+                const x = cxPos - doorW / 2;
+                const isTargeted = (targetedDoorIdx === i);
+
+                ctx.save();
+                ctx.translate(x, doorY);
+
+                if (destroyedDoors[i]) {
+                    ctx.strokeStyle = 'rgba(242, 84, 91, 0.25)';
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeRect(0, 0, doorW, doorH);
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = 'rgba(242, 84, 91, 0.4)';
+                    ctx.font = '700 13px "Orbitron", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('❌ DESINTEGRADA', doorW / 2, doorH / 2);
+                    ctx.restore();
+                    return;
+                }
+
+                ctx.fillStyle = isTargeted ? 'rgba(20, 36, 68, 0.96)' : 'rgba(10, 16, 30, 0.92)';
+                ctx.strokeStyle = isTargeted ? '#5EEAD4' : 'rgba(56, 86, 143, 0.7)';
+                ctx.lineWidth = isTargeted ? 3.5 : 2;
+
+                if (isTargeted) {
+                    ctx.shadowColor = '#5EEAD4';
+                    ctx.shadowBlur = 22;
+                }
+
+                ctx.fillRect(0, 0, doorW, doorH);
+                ctx.strokeRect(0, 0, doorW, doorH);
+
+                const hp = doorHP[i];
+                if (hp < 3) {
+                    ctx.strokeStyle = '#F2545B';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(30, 40); ctx.lineTo(80, 90); ctx.lineTo(120, 140);
+                    if (hp === 1) {
+                        ctx.moveTo(180, 50); ctx.lineTo(140, 110); ctx.lineTo(160, 170);
+                    }
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = isTargeted ? '#5EEAD4' : '#38568F';
+                ctx.fillRect(6, 6, doorW - 12, 36);
+
+                ctx.fillStyle = isTargeted ? '#040914' : '#EEF4FC';
+                ctx.font = '900 16px "Orbitron", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`OPCIÓN  [ ${optLetters[i]} ]`, doorW / 2, 30);
+
+                ctx.fillStyle = 'rgba(2, 5, 13, 0.8)';
+                ctx.fillRect(doorW / 2 - 40, 44, 80, 6);
+                ctx.fillStyle = hp === 3 ? '#5EEAD4' : (hp === 2 ? '#F2C14E' : '#F2545B');
+                ctx.fillRect(doorW / 2 - 40, 44, (80 * hp) / 3, 6);
+
+                ctx.fillStyle = '#FFFFFF';
+                ctx.shadowColor = '#000000';
+                ctx.shadowBlur = 4;
+                ctx.font = '700 14px "JetBrains Mono", monospace';
+
+                const maxTextW = doorW - 24;
+                drawWrappedText(ctx, optText, doorW / 2, 120, maxTextW, 20);
+
+                if (isTargeted) {
+                    ctx.strokeStyle = '#5EEAD4';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(doorW / 2, doorH / 2 + 10, 24, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            });
+
+            /* ---- 3. FRAGMENTACIÓN DE PUERTA (SHARDS) ---- */
+            doorShards.forEach((s, idx) => {
+                s.x += s.vx; s.y += s.vy; s.rot += s.vRot; s.alpha -= 0.02;
+                ctx.save();
+                ctx.translate(s.x, s.y);
+                ctx.rotate(s.rot);
+                ctx.fillStyle = s.color;
+                ctx.globalAlpha = Math.max(0, s.alpha);
+                ctx.fillRect(-s.w / 2, -s.h / 2, s.w, s.h);
+                ctx.restore();
+                if (s.alpha <= 0) doorShards.splice(idx, 1);
+            });
+
+            /* ---- 4. ORBES VERDES Y AMARILLAS (ATRACCIÓN MAGNÉTICA GARANTIZADA) ---- */
+            activeOrbs.forEach((orb, idx) => {
+                const targetY = viewH - 42;
+                const dx = shipX - orb.x;
+                const dy = targetY - orb.y;
+                const dist = Math.hypot(dx, dy);
+
+                orb.x += dx * 0.16;
+                orb.y += Math.max(3, dy * 0.16);
+
+                ctx.save();
+                ctx.fillStyle = orb.type === 'green' ? '#5EEAD4' : '#F2C14E';
+                ctx.shadowColor = ctx.fillStyle;
+                ctx.shadowBlur = 25;
+                ctx.beginPath();
+                ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = '#FFF';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(orb.x, orb.y, orb.radius + 5, animTime * 3, animTime * 3 + Math.PI * 1.4);
+                ctx.stroke();
+                ctx.restore();
+
+                if (dist < 32 || orb.y >= targetY - 10) {
+                    const doorIdx = orb.doorIndex;
+                    activeOrbs.splice(idx, 1);
+                    absorberOrbe(orb.type, orb.explain, orb.puntos, doorIdx);
+                }
+            });
+
+            /* ---- 5. LÁSERES Y PARTÍCULAS ---- */
+            laserBolts.forEach((bolt, idx) => {
+                bolt.y -= 26;
+
+                ctx.save();
+                ctx.fillStyle = '#5EEAD4';
+                ctx.shadowColor = '#5EEAD4';
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.arc(bolt.x, bolt.y, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                if (bolt.y <= doorY + doorH) {
+                    impactarPuerta(bolt.doorIndex, bolt.x, doorY + doorH / 2);
+                    laserBolts.splice(idx, 1);
+                }
+            });
+
+            particles.forEach((p, idx) => {
+                p.x += p.vx; p.y += p.vy; p.alpha -= 0.03;
+                ctx.save();
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
+                if (p.alpha <= 0) particles.splice(idx, 1);
+            });
+
+            /* ---- 6. NAVE ESPACIAL DEL JUGADOR ---- */
+            if (!isShipExploded) {
+                const dx = targetShipX - shipX;
+                shipVelocityX = dx * 0.15;
+                shipX += shipVelocityX;
+
+                const shipY = viewH - 42;
+                renderSpaceship(shipX, shipY, shipVelocityX, targetedDoorIdx !== -1);
+            }
+
+            /* ---- 7. PANEL DE PREGUNTA INTEGRADO ---- */
+            renderCanvasQuestionHUD(W, question, room);
+
+            /* ---- 8. CABINA Y BARRA HUD SCI-FI ABAJO ---- */
+            renderCockpitHUD(W, H, viewH);
+
+            requestAnimationFrame(drawScene);
+        }
+
+        function renderCanvasQuestionHUD(W, question, room) {
+            if (!question || !room) return;
+
+            ctx.save();
+
+            const panelX = 24;
+            const panelY = 12;
+            const panelW = W - 48;
+            const hasCode = !!question.code;
+            const panelH = hasCode ? 165 : 100;
+
+            ctx.fillStyle = 'rgba(8, 14, 28, 0.94)';
+            ctx.strokeStyle = '#38568F';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = 'rgba(167, 139, 250, 0.3)';
+            ctx.shadowBlur = 18;
+
+            ctx.beginPath();
+            ctx.roundRect(panelX, panelY, panelW, panelH, 12);
+            ctx.fill();
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = '#A78BFA';
+            ctx.font = '700 12px "Orbitron", sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`${room.title.toUpperCase()} · RETO ${juego.currentQuestionIdx + 1}/${room.preguntas.length}`, panelX + 18, panelY + 26);
+
+            ctx.fillStyle = questionTimeLeft <= 8 ? '#F2545B' : '#F2C14E';
+            ctx.font = '800 14px "Orbitron", sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(`⏱️ TIEMPO: ${questionTimeLeft}s`, panelX + panelW - 18, panelY + 26);
+
+            ctx.fillStyle = '#EEF4FC';
+            ctx.font = '800 16.5px "Inter", sans-serif';
+            ctx.textAlign = 'left';
+            drawWrappedTextLeft(ctx, question.prompt, panelX + 18, panelY + 48, panelW - 36, 22);
+
+            if (hasCode) {
+                const codeY = panelY + 80;
+                const codeH = 70;
+                ctx.fillStyle = 'rgba(2, 5, 13, 0.96)';
+                ctx.strokeStyle = '#38568F';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.roundRect(panelX + 16, codeY, panelW - 32, codeH, 8);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#5EEAD4';
+                ctx.font = '700 14px "JetBrains Mono", monospace';
+                const codeLines = question.code.split('\n');
+                codeLines.forEach((cline, idx) => {
+                    if (idx < 3) {
+                        ctx.fillText(cline, panelX + 28, codeY + 24 + idx * 20);
+                    }
+                });
+            }
+
+            ctx.restore();
+        }
+
+        function renderSpaceship(x, y, vx, isLockedOn) {
+            ctx.save();
+
+            ctx.strokeStyle = isLockedOn ? 'rgba(94, 234, 212, 0.45)' : 'rgba(136, 153, 184, 0.2)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath();
+            ctx.moveTo(x, y - 45);
+            ctx.lineTo(x, 430);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.translate(x, y);
+
+            const rollAngle = Math.max(-0.28, Math.min(0.28, vx * 0.03));
+            ctx.rotate(rollAngle);
+
+            if (shieldTimer > 0) {
+                shieldTimer--;
+                ctx.save();
+                ctx.strokeStyle = shieldGlow === 'ok' ? '#5EEAD4' : '#F2545B';
+                ctx.shadowColor = ctx.strokeStyle;
+                ctx.shadowBlur = 24;
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.ellipse(0, -6, 52, 38, 0, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            const flameH = 18 + Math.random() * 14;
+            ctx.fillStyle = '#5EEAD4';
+            ctx.shadowColor = '#5EEAD4';
+            ctx.shadowBlur = 18;
+            ctx.beginPath();
+            ctx.moveTo(-12, 18);
+            ctx.lineTo(0, 18 + flameH);
+            ctx.lineTo(12, 18);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#101B30';
+            ctx.strokeStyle = '#5EEAD4';
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+            ctx.moveTo(0, -42);
+            ctx.lineTo(44, 22);
+            ctx.lineTo(18, 15);
+            ctx.lineTo(0, 20);
+            ctx.lineTo(-18, 15);
+            ctx.lineTo(-44, 22);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.strokeStyle = '#A78BFA';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(-34, 18); ctx.lineTo(-14, -12);
+            ctx.moveTo(34, 18); ctx.lineTo(14, -12);
+            ctx.stroke();
+
+            ctx.fillStyle = '#5EEAD4';
+            ctx.shadowColor = '#5EEAD4';
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.ellipse(0, -12, 7, 14, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function renderCockpitHUD(W, H, viewH) {
+            const y = viewH;
+            const hudH = H - viewH;
+
+            ctx.save();
+            ctx.fillStyle = '#060B17';
+            ctx.fillRect(0, y, W, hudH);
+            ctx.strokeStyle = '#1E3054';
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(2, y + 2, W - 4, hudH - 4);
+
+            ctx.fillStyle = '#091021';
+            ctx.fillRect(20, y + 12, 220, 80);
+            ctx.strokeRect(20, y + 12, 220, 80);
+
+            ctx.fillStyle = '#8899B8';
+            ctx.font = '700 11px "Orbitron", sans-serif';
+            ctx.fillText('ESCUDO / DAÑOS', 34, y + 34);
+
+            ctx.fillStyle = juego.errores >= 4 ? '#F2545B' : '#5EEAD4';
+            ctx.font = '900 24px "Orbitron", sans-serif';
+            ctx.fillText(`${juego.health}% (${juego.errores}/6 ERR)`, 34, y + 66);
+
+            ctx.fillStyle = '#142038';
+            ctx.fillRect(34, y + 74, 190, 10);
+            ctx.fillStyle = juego.errores >= 4 ? '#F2545B' : '#5EEAD4';
+            ctx.fillRect(34, y + 74, Math.max(0, (190 * juego.health) / 100), 10);
+
+            ctx.fillStyle = '#091021';
+            ctx.fillRect(260, y + 12, 160, 80);
+            ctx.strokeRect(260, y + 12, 160, 80);
+
+            ctx.fillStyle = '#8899B8';
+            ctx.font = '700 11px "Orbitron", sans-serif';
+            ctx.fillText('INTENTOS RETO', 274, y + 34);
+
+            const question = juego.preguntaActual;
+            const attemptsLeft = question ? (3 - question.intentos) : 3;
+            ctx.fillStyle = '#F2C14E';
+            ctx.font = '900 26px "Orbitron", sans-serif';
+            ctx.fillText(`${attemptsLeft} / 3`, 274, y + 68);
+
+            ctx.fillStyle = '#091021';
+            ctx.fillRect(W / 2 - 100, y + 12, 200, 80);
+            ctx.strokeRect(W / 2 - 100, y + 12, 200, 80);
+
+            ctx.fillStyle = '#A78BFA';
+            ctx.font = '700 11px "Orbitron", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('PUERTA APUNTADA', W / 2, y + 34);
+
+            const laneLetters = ['[ A ]', '[ B ]', '[ C ]', '[ D ]'];
+            const doorCenters = [190, 490, 790, 1090];
+            let targetedIdx = 0;
+            doorCenters.forEach((cxPos, idx) => {
+                if (Math.abs(shipX - cxPos) < 125 && !destroyedDoors[idx]) targetedIdx = idx;
+            });
+
+            ctx.fillStyle = '#5EEAD4';
+            ctx.font = '900 28px "Orbitron", sans-serif';
+            ctx.fillText(laneLetters[targetedIdx], W / 2, y + 70);
+
+            ctx.fillStyle = '#091021';
+            ctx.fillRect(W - 410, y + 12, 180, 80);
+            ctx.strokeRect(W - 410, y + 12, 180, 80);
+
+            ctx.fillStyle = '#8899B8';
+            ctx.font = '700 11px "Orbitron", sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('PUNTAJE', W - 396, y + 34);
+
+            ctx.fillStyle = '#5EEAD4';
+            ctx.font = '900 26px "Orbitron", sans-serif';
+            ctx.fillText(`${juego.puntajeTotal} PTS`, W - 396, y + 68);
+
+            ctx.fillStyle = '#091021';
+            ctx.fillRect(W - 210, y + 12, 190, 80);
+            ctx.strokeRect(W - 210, y + 12, 190, 80);
+
+            ctx.fillStyle = '#8899B8';
+            ctx.font = '700 11px "Orbitron", sans-serif';
+            ctx.fillText('SECTOR VUELO', W - 196, y + 34);
+
+            ctx.fillStyle = '#F2C14E';
+            ctx.font = '900 26px "Orbitron", sans-serif';
+            ctx.fillText(`0${juego.currentRoomIdx + 1} / 05`, W - 196, y + 68);
+
+            ctx.restore();
+        }
+
+        function dispararLaserNave() {
+            if (isProcessingDisparo || isShipExploded) return;
+
+            sounds.playShoot();
+
+            const doorCenters = [190, 490, 790, 1090];
+            let targetedDoorIdx = 0;
+            doorCenters.forEach((cxPos, idx) => {
+                if (Math.abs(shipX - cxPos) < 125 && !destroyedDoors[idx]) targetedDoorIdx = idx;
+            });
+
+            if (destroyedDoors[targetedDoorIdx]) return;
+
+            laserBolts.push({
+                x: shipX,
+                y: canvas.height - 150,
+                doorIndex: targetedDoorIdx
+            });
+        }
+
+        function impactarPuerta(doorIndex, impactX, impactY) {
+            if (isProcessingDisparo || isShipExploded || destroyedDoors[doorIndex]) return;
+
+            doorHP[doorIndex]--;
+
+            if (doorHP[doorIndex] > 0) {
+                sounds.playShoot();
+                for (let i = 0; i < 15; i++) {
+                    particles.push({
+                        x: impactX, y: impactY,
+                        vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
+                        size: 2.5, color: '#5EEAD4', alpha: 1
+                    });
+                }
+                return;
+            }
+
+            isProcessingDisparo = true;
+            clearInterval(questionTimerInterval);
+
+            const question = juego.preguntaActual;
+            if (!question) return;
+
+            const doorW = 250;
+            const doorH = 190;
+            const doorY = 240;
+            const doorCenters = [190, 490, 790, 1090];
+            const cxPos = doorCenters[doorIndex];
+
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 5; c++) {
+                    doorShards.push({
+                        x: (cxPos - doorW / 2) + c * (doorW / 5) + (doorW / 10),
+                        y: doorY + r * (doorH / 4) + (doorH / 8),
+                        w: doorW / 5 - 2,
+                        h: doorH / 4 - 2,
+                        vx: (Math.random() - 0.5) * 10,
+                        vy: (Math.random() - 0.5) * 10 - 2,
+                        rot: Math.random() * Math.PI,
+                        vRot: (Math.random() - 0.5) * 0.3,
+                        color: Math.random() > 0.5 ? '#5EEAD4' : '#1C2B4B',
+                        alpha: 1
+                    });
+                }
+            }
+
+            const correcta = question.responder(doorIndex);
+            juego.guardarProgreso();
+            actualizarHUD();
+
+            activeOrbs.push({
+                x: cxPos,
+                y: doorY + doorH / 2,
+                type: correcta ? 'green' : 'yellow',
+                radius: 16,
+                doorIndex: doorIndex,
+                explain: question.explain,
+                puntos: question.puntosGanados
+            });
+        }
+
+        function absorberOrbe(type, explain, puntos, doorIndex) {
+            if (type === 'green') {
+                sounds.playPassOk();
+                shieldGlow = 'ok';
+                shieldTimer = 40;
+
+                const feedbackEl = document.getElementById('feedback-banner');
+                feedbackEl.textContent = `✓ ¡PUERTA DESTRUIDA! Orbe Verde Absorbida (+${puntos} pts). ${explain}`;
+                feedbackEl.className = 'feedback-banner visible ok';
+
+                setTimeout(() => {
+                    feedbackEl.className = 'feedback-banner';
+                    isProcessingDisparo = false;
+                    resetearEstadoPuertas();
+                    avanzarSiguienteReto();
+                }, 1600);
+
+            } else {
+                sounds.playHurt();
+                juego.errores++;
+                juego.guardarProgreso();
+                actualizarHUD();
+
+                destroyedDoors[doorIndex] = true;
+
+                shieldGlow = 'bad';
+                shieldTimer = 40;
+
+                if (juego.errores >= 6) {
+                    explotarNave();
+                    return;
+                }
+
+                const question = juego.preguntaActual;
+                const feedbackEl = document.getElementById('feedback-banner');
+                if (question.resuelta) {
+                    feedbackEl.textContent = `✕ Sin intentos. La opción correcta era [${['A', 'B', 'C', 'D'][question.answer]}]. ${explain}`;
+                    feedbackEl.className = 'feedback-banner visible bad';
+                    setTimeout(() => {
+                        feedbackEl.className = 'feedback-banner';
+                        isProcessingDisparo = false;
+                        resetearEstadoPuertas();
+                        avanzarSiguienteReto();
+                    }, 2200);
+                } else {
+                    feedbackEl.textContent = `🟡 ORBE AMARILLA ABSORBIDA: La opción [${['A', 'B', 'C', 'D'][doorIndex]}] se ha desintegrado. ¡Segunda oportunidad con las puertas restantes!`;
+                    feedbackEl.className = 'feedback-banner visible bad';
+                    setTimeout(() => {
+                        feedbackEl.className = 'feedback-banner';
+                        isProcessingDisparo = false;
+                        reiniciarTemporizadorPregunta();
+                    }, 1600);
+                }
+            }
+        }
+
+        function explotarNave() {
+            isShipExploded = true;
+            clearInterval(questionTimerInterval);
+            sounds.playHurt();
+
+            for (let i = 0; i < 80; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const spd = 2 + Math.random() * 12;
+                particles.push({
+                    x: shipX, y: canvas.height - 140,
+                    vx: Math.cos(angle) * spd, vy: Math.sin(angle) * spd,
+                    size: 3 + Math.random() * 8,
+                    color: Math.random() > 0.4 ? '#F2545B' : (Math.random() > 0.5 ? '#F2C14E' : '#FFF'),
+                    alpha: 1
+                });
+            }
+
+            const feedbackEl = document.getElementById('feedback-banner');
+            feedbackEl.textContent = `💥 ¡NAVE DESTRUIDA POR ACUMULACIÓN DE ERRORES (6/6)!`;
+            feedbackEl.className = 'feedback-banner visible bad';
+
+            setTimeout(() => {
+                document.getElementById('modal-gameover').classList.add('active');
+            }, 1200);
+        }
+
+        function avanzarSiguienteReto() {
+            const sala = juego.salaActual;
+
+            if (juego.currentQuestionIdx < sala.preguntas.length - 1) {
+                juego.currentQuestionIdx++;
+            } else {
+                sala.itemCollected = true;
+                sounds.playVictory();
+                if (juego.currentRoomIdx < juego.salas.length - 1) {
+                    juego.currentRoomIdx++;
+                    juego.currentQuestionIdx = 0;
+                } else {
+                    finalizarJuego();
+                    return;
+                }
+            }
+            juego.guardarProgreso();
+            actualizarHUD();
+            resetearEstadoPuertas();
+            reiniciarTemporizadorPregunta();
+        }
+
+        /* =========================================================
+           5. HUD Y REGISTRO SUPABASE
+           ========================================================= */
+        function actualizarHUD() {
+            document.getElementById('player-badge').style.display = 'flex';
+            document.getElementById('timer-badge').style.display = 'flex';
+            document.getElementById('btn-restart-game').style.display = 'inline-flex';
+            document.getElementById('player-name-val').textContent = juego.nombre;
+        }
+
+        function fmtTime(sec) {
+            const m = Math.floor(sec / 60).toString().padStart(2, '0');
+            const s = (sec % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        let clockTimer = null;
+        function iniciarReloj() {
+            clearInterval(clockTimer);
+            clockTimer = setInterval(() => {
+                document.getElementById('clock-val').textContent = fmtTime(juego.tiempoSegundos());
+            }, 1000);
+        }
+
+        document.getElementById('btn-start-game').onclick = () => {
+            sounds.init();
+            const nombre = document.getElementById('nombre').value.trim();
+            const grupo = document.getElementById('grupo').value.trim();
+            if (!nombre || !grupo) {
+                alert("Ingresa tu nombre y grupo/matrícula para iniciar la misión.");
+                return;
+            }
+            juego.nombre = nombre; juego.grupo = grupo; juego.startTime = Date.now();
+            juego.guardarProgreso();
+
+            document.getElementById('modal-landing').classList.remove('active');
+            actualizarHUD();
+            iniciarReloj();
+            resetearEstadoPuertas();
+            reiniciarTemporizadorPregunta();
+            startAnimationLoop();
+        };
+
+        const btnResume = document.getElementById('btn-resume-game');
+        if (localStorage.getItem('escape_js_starship_runner_v2')) {
+            btnResume.style.display = 'inline-flex';
+        }
+        btnResume.onclick = () => {
+            sounds.init();
+            if (juego.cargarProgreso()) {
+                document.getElementById('modal-landing').classList.remove('active');
+                actualizarHUD();
+                if (!juego.finished) {
+                    iniciarReloj();
+                    resetearEstadoPuertas();
+                    reiniciarTemporizadorPregunta();
+                } else {
+                    mostrarPantallaFinal();
+                }
+                startAnimationLoop();
+            }
+        };
+
+        async function finalizarJuego() {
+            juego.finished = true;
+            clearInterval(clockTimer);
+            clearInterval(questionTimerInterval);
+            juego.guardarProgreso();
+            mostrarPantallaFinal();
+
+            const statusEl = document.getElementById('supabase-status');
+            if (!supabaseClient) {
+                statusEl.textContent = "⚠ Supabase no configurado aún en el código.";
+                return;
+            }
+
+            try {
+                const detalle = juego.salas.map(s => ({
+                    sala: s.id, puntaje: s.puntaje, puntaje_max: s.puntajeMax,
+                    preguntas: s.preguntas.map(p => ({ intentos: p.intentos, puntos: p.puntosGanados }))
+                }));
+
+                const { error } = await supabaseClient.from('resultados_examen').insert([{
+                    nombre: juego.nombre, grupo: juego.grupo, puntaje: juego.puntajeTotal,
+                    puntaje_maximo: juego.puntajeMaxTotal, tiempo_segundos: juego.tiempoSegundos(), detalle: detalle
+                }]);
+
+                if (error) throw error;
+                statusEl.textContent = "✓ ¡Resultados enviados exitosamente al profesor!";
+            } catch (e) {
+                console.error(e);
+                statusEl.textContent = "⚠ No se pudieron enviar los resultados: " + e.message;
+            }
+        }
+
+        function mostrarPantallaFinal() {
+            document.getElementById('modal-final').classList.add('active');
+            document.getElementById('final-score').textContent = `${juego.puntajeTotal} / ${juego.puntajeMaxTotal}`;
+            document.getElementById('final-time').textContent = fmtTime(juego.tiempoSegundos());
+
+            const bk = document.getElementById('final-breakdown');
+            bk.innerHTML = juego.salas.map(s => `
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
+      <span>${s.label}</span>
+      <span style="font-weight:700; color:var(--ok);">${s.puntaje} / ${s.puntajeMax} pts</span>
+    </div>
+  `).join('');
+        }
+
+        document.getElementById('btn-sound-toggle').onclick = () => {
+            const on = sounds.toggle();
+            document.getElementById('btn-sound-toggle').textContent = on ? '🎵 Música MP3 / Audio: ON' : '🔇 Audio: OFF';
+        };
+
+        function reiniciarJuego() {
+            if (confirm("¿Deseas reiniciar la misión desde el inicio?")) {
+                juego.borrarProgreso();
+                location.reload();
+            }
+        }
+        document.getElementById('btn-restart-game').onclick = reiniciarJuego;
+        document.getElementById('btn-restart-gameover').onclick = reiniciarJuego;
+        document.getElementById('btn-restart-final').onclick = reiniciarJuego;
+
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+
+</html>
