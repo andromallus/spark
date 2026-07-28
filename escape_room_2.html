@@ -413,10 +413,10 @@
     <div class="modal-backdrop" id="modal-gameover">
         <div class="modal-card" style="text-align:center;">
             <h2 class="pixel-title" style="color:var(--danger);">💥 ¡NAVE DESTRUIDA!</h2>
-            <p class="lead">Has acumulado <strong>6 errores</strong> y el casco de la nave ha colapsado.</p>
+            <p class="lead">Has acumulado <strong>8 errores</strong> y el casco de la nave ha colapsado.</p>
             <div
                 style="font-family:var(--orbitron); font-size:32px; font-weight:900; color:var(--danger); margin:14px 0;">
-                ERRORES: 6 / 6</div>
+                ERRORES: 8 / 8</div>
             <div class="btn-row" style="justify-content:center; margin-top:16px;">
                 <button class="btn" id="btn-restart-gameover">🔄 REINICIAR MISIÓN</button>
             </div>
@@ -863,7 +863,7 @@
             get preguntaActual() { return this.salaActual ? this.salaActual.preguntas[this.currentQuestionIdx] : null; }
             get puntajeTotal() { return this.salas.reduce((a, s) => a + s.puntaje, 0); }
             get puntajeMaxTotal() { return this.salas.reduce((a, s) => a + s.puntajeMax, 0); }
-            get health() { return Math.max(0, Math.round(100 - (this.errores * 16.666))); }
+            get health() { return Math.max(0, Math.round(100 - (this.errores * 12.5))); }
 
             tiempoSegundos() {
                 if (!this.startTime) return 0;
@@ -1033,13 +1033,13 @@
             juego.guardarProgreso();
             actualizarHUD();
 
-            if (juego.errores >= 6) {
+            if (juego.errores >= 8) {
                 explotarNave();
                 return;
             }
 
             const feedbackEl = document.getElementById('feedback-banner');
-            feedbackEl.textContent = `✕ ¡TIEMPO AGOTADO (30s)! Daño recibido (Error ${juego.errores}/6). Tienes otra oportunidad.`;
+            feedbackEl.textContent = `✕ ¡TIEMPO AGOTADO (30s)! Daño recibido (Error ${juego.errores}/8). Tienes otra oportunidad.`;
             feedbackEl.className = 'feedback-banner visible bad';
             setTimeout(() => {
                 feedbackEl.className = 'feedback-banner';
@@ -1512,13 +1512,13 @@
             ctx.font = '700 11px "Orbitron", sans-serif';
             ctx.fillText('ESCUDO / DAÑOS', 34, y + 34);
 
-            ctx.fillStyle = juego.errores >= 4 ? '#F2545B' : '#5EEAD4';
+            ctx.fillStyle = juego.errores >= 6 ? '#F2545B' : '#5EEAD4';
             ctx.font = '900 24px "Orbitron", sans-serif';
-            ctx.fillText(`${juego.health}% (${juego.errores}/6 ERR)`, 34, y + 66);
+            ctx.fillText(`${juego.health}% (${juego.errores}/8 ERR)`, 34, y + 66);
 
             ctx.fillStyle = '#142038';
             ctx.fillRect(34, y + 74, 190, 10);
-            ctx.fillStyle = juego.errores >= 4 ? '#F2545B' : '#5EEAD4';
+            ctx.fillStyle = juego.errores >= 6 ? '#F2545B' : '#5EEAD4';
             ctx.fillRect(34, y + 74, Math.max(0, (190 * juego.health) / 100), 10);
 
             ctx.fillStyle = '#091021';
@@ -1701,7 +1701,7 @@
                 shieldGlow = 'bad';
                 shieldTimer = 40;
 
-                if (juego.errores >= 6) {
+                if (juego.errores >= 8) {
                     explotarNave();
                     return;
                 }
@@ -1726,7 +1726,7 @@
                 } else {
                     canvasToast = {
                         title: `🟡 OPCIÓN [${['A', 'B', 'C', 'D'][doorIndex]}] EQUIVOCADA — PUERTA DESINTEGRADA`,
-                        subtext: `¡Segunda oportunidad con las puertas restantes! (Casco nave: ${juego.errores}/6 errores)`,
+                        subtext: `¡Segunda oportunidad con las puertas restantes! (Casco nave: ${juego.errores}/8 errores)`,
                         type: 'bad',
                         timer: 110
                     };
@@ -1759,7 +1759,7 @@
             }
 
             const feedbackEl = document.getElementById('feedback-banner');
-            feedbackEl.textContent = `💥 ¡NAVE DESTRUIDA POR ACUMULACIÓN DE ERRORES (6/6)!`;
+            feedbackEl.textContent = `💥 ¡NAVE DESTRUIDA POR ACUMULACIÓN DE ERRORES (8/8)!`;
             feedbackEl.className = 'feedback-banner visible bad';
 
             setTimeout(() => {
