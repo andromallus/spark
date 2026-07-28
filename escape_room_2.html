@@ -425,6 +425,20 @@
         </div>
     </div>
 
+    <!-- Modal: Cambio de Sector / Siguiente Nivel -->
+    <div class="modal-backdrop" id="modal-sector-up">
+        <div class="modal-card" style="text-align:center;">
+            <h2 class="pixel-title" style="color:var(--ok);">🚀 ¡SECTOR COMPLETADO! ¡BIEN HECHO!</h2>
+            <p class="lead" id="sector-up-text">Has superado todos los retos de este nivel.</p>
+            <div style="font-family:var(--orbitron); font-size:22px; font-weight:900; color:var(--accent); margin:16px 0;" id="sector-up-title">
+                Siguiente Nivel: Sector 2
+            </div>
+            <div class="btn-row" style="justify-content:center; margin-top:18px;">
+                <button class="btn" id="btn-next-sector">⚡ INGRESAR AL SIGUIENTE NIVEL →</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Final Victory Screen -->
     <div class="modal-backdrop" id="modal-final">
         <div class="modal-card" style="text-align:center;">
@@ -1621,7 +1635,7 @@
                 shieldTimer = 40;
 
                 const feedbackEl = document.getElementById('feedback-banner');
-                feedbackEl.textContent = `✓ ¡PUERTA DESTRUIDA! Orbe Verde Absorbida (+${puntos} pts). ${explain}`;
+                feedbackEl.textContent = `🎉 ¡BIEN HECHO! RESPUESTA CORRECTA (+${puntos} pts). Puerta destruida. ${explain}`;
                 feedbackEl.className = 'feedback-banner visible ok';
 
                 setTimeout(() => {
@@ -1629,7 +1643,7 @@
                     isProcessingDisparo = false;
                     resetearEstadoPuertas();
                     avanzarSiguienteReto();
-                }, 1600);
+                }, 1800);
 
             } else {
                 sounds.playHurt();
@@ -1701,21 +1715,30 @@
 
             if (juego.currentQuestionIdx < sala.preguntas.length - 1) {
                 juego.currentQuestionIdx++;
+                juego.guardarProgreso();
+                actualizarHUD();
+                resetearEstadoPuertas();
+                reiniciarTemporizadorPregunta();
             } else {
                 sala.itemCollected = true;
                 sounds.playVictory();
                 if (juego.currentRoomIdx < juego.salas.length - 1) {
                     juego.currentRoomIdx++;
                     juego.currentQuestionIdx = 0;
+                    juego.guardarProgreso();
+                    actualizarHUD();
+                    resetearEstadoPuertas();
+
+                    // Mostrar cartel modal de Siguiente Nivel / Sector Desbloqueado
+                    const proximaSala = juego.salaActual;
+                    document.getElementById('sector-up-text').textContent = `🎉 ¡Excelente trabajo! Has completado el nivel: ${sala.title}.`;
+                    document.getElementById('sector-up-title').textContent = `DESBLOQUEADO: ${proximaSala.title.toUpperCase()}`;
+                    document.getElementById('modal-sector-up').classList.add('active');
                 } else {
                     finalizarJuego();
                     return;
                 }
             }
-            juego.guardarProgreso();
-            actualizarHUD();
-            resetearEstadoPuertas();
-            reiniciarTemporizadorPregunta();
         }
 
         /* =========================================================
@@ -1826,6 +1849,11 @@
     </div>
   `).join('');
         }
+
+        document.getElementById('btn-next-sector').onclick = () => {
+            document.getElementById('modal-sector-up').classList.remove('active');
+            reiniciarTemporizadorPregunta();
+        };
 
         document.getElementById('btn-sound-toggle').onclick = () => {
             const on = sounds.toggle();
