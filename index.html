@@ -329,6 +329,107 @@
             padding: 10px;
         }
 
+        /* Music Picker Special Section */
+        .music-picker-box {
+            position: relative;
+            background: linear-gradient(135deg, rgba(14, 27, 54, 0.95), rgba(8, 16, 32, 0.98));
+            border: 2px solid #00F0FF;
+            border-radius: 14px;
+            padding: 18px;
+            margin: 22px 0 26px;
+            box-shadow: 0 0 22px rgba(0, 240, 255, 0.35), inset 0 0 15px rgba(0, 240, 255, 0.12);
+            animation: pulseGlow 4s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                border-color: #00F0FF;
+                box-shadow: 0 0 18px rgba(0, 240, 255, 0.35), inset 0 0 10px rgba(0, 240, 255, 0.1);
+            }
+            50% {
+                border-color: #FF00E4;
+                box-shadow: 0 0 28px rgba(255, 0, 228, 0.5), inset 0 0 15px rgba(255, 0, 228, 0.2);
+            }
+            100% {
+                border-color: #00FFBB;
+                box-shadow: 0 0 24px rgba(0, 255, 187, 0.45), inset 0 0 12px rgba(0, 255, 187, 0.15);
+            }
+        }
+
+        .music-picker-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .music-picker-badge {
+            background: linear-gradient(90deg, #FF00E4, #00F0FF);
+            color: #FFFFFF;
+            font-family: var(--orbitron);
+            font-size: 11px;
+            font-weight: 900;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.08em;
+            box-shadow: 0 0 12px rgba(255, 0, 228, 0.7);
+            text-shadow: 0 0 4px #000;
+        }
+
+        .music-picker-title {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 800;
+            color: #00F0FF;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+        }
+
+        .music-picker-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .glow-music-select {
+            width: 100%;
+            background: rgba(4, 9, 20, 0.95) !important;
+            border: 2px solid #00F0FF !important;
+            color: #FFFFFF !important;
+            padding: 14px 44px 14px 16px !important;
+            border-radius: 8px !important;
+            font-size: 15px !important;
+            font-family: var(--sans) !important;
+            font-weight: 700 !important;
+            margin-bottom: 0 !important;
+            cursor: pointer;
+            box-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
+            transition: all 0.25s ease;
+        }
+
+        .glow-music-select:hover, .glow-music-select:focus {
+            border-color: #FF00E4 !important;
+            box-shadow: 0 0 25px rgba(255, 0, 228, 0.65), inset 0 0 10px rgba(255, 0, 228, 0.3) !important;
+            transform: scale(1.01);
+        }
+
+        .music-sparkle-icon {
+            position: absolute;
+            right: 14px;
+            pointer-events: none;
+            font-size: 18px;
+            color: #00F0FF;
+            animation: spinSparkle 3s infinite linear;
+        }
+
+        @keyframes spinSparkle {
+            0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+            50% { transform: scale(1.2) rotate(180deg); opacity: 1; filter: drop-shadow(0 0 6px #FF00E4); }
+            100% { transform: scale(1) rotate(360deg); opacity: 0.8; }
+        }
+
         .btn {
             font-family: var(--orbitron);
             font-weight: 800;
@@ -442,18 +543,27 @@
             <label for="grupo">Matrícula</label>
             <input type="text" id="grupo" placeholder="Ej. 1234567" autocomplete="off" />
 
-            <label for="musica-select">🎵 Banda Sonora de la Misión</label>
-            <select id="musica-select">
-                <option value="background.mp3">🚀 Sci-Fi Synth (Default)</option>
-                <option value="Slow.mp3">🌙 Slow (Lo-Fi / Relax)</option>
-                <option value="Another Winter.mp3">❄️ Another Winter</option>
-                <option value="Chrome Fracture.mp3">⚡ Chrome Fracture</option>
-                <option value="Los Malaventurados No Lloran.mp3">🎸 Los Malaventurados No Lloran</option>
-                <option value="MEOW.mp3">🐾 MEOW</option>
-                <option value="Starline Victory Run.mp3">🌌 Starline Victory Run</option>
-                <option value="憂鬱 - Sun.mp3">🌅 憂鬱 - Sun</option>
-                <option value="none">🔇 Sin Música (Silencio)</option>
-            </select>
+            <!-- DJ MUSIC PICKER CONTAINER -->
+            <div class="music-picker-box">
+                <div class="music-picker-header">
+                    <span class="music-picker-badge">🎧 DJ MODE</span>
+                    <span class="music-picker-title">✨ SELECCIONA TU PISTA DE MÚSICA DE FONDO 🎶</span>
+                </div>
+                <div class="music-picker-input-wrapper">
+                    <select id="musica-select" class="glow-music-select">
+                        <option value="background.mp3">🚀 Sci-Fi Synth · [Default Cyberpunk]</option>
+                        <option value="Slow.mp3">🌙 Slow · [Lo-Fi Chill & Relax]</option>
+                        <option value="Another Winter.mp3">❄️ Another Winter · [Scott Pilgrim Beat]</option>
+                        <option value="Chrome Fracture.mp3">⚡ Chrome Fracture · [Synthwave Rush]</option>
+                        <option value="Los Malaventurados No Lloran.mp3">🎸 Los Malaventurados No Lloran · [Rock Nostalgia]</option>
+                        <option value="MEOW.mp3">🐾 MEOW · [Cat Electro Energy]</option>
+                        <option value="Starline Victory Run.mp3">🌌 Starline Victory Run · [Arcade Electro]</option>
+                        <option value="憂鬱 - Sun.mp3">🌅 憂鬱 - Sun · [Vaporwave Dreams]</option>
+                        <option value="none">🔇 Sin Música · [Modo Silencioso]</option>
+                    </select>
+                    <span class="music-sparkle-icon">✨</span>
+                </div>
+            </div>
 
             <div class="btn-row">
                 <button class="btn" id="btn-start-game">⚡ INICIAR MISIÓN →</button>
