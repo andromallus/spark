@@ -276,7 +276,7 @@
             text-transform: uppercase;
         }
 
-        input[type=text] {
+        input[type=text], select {
             width: 100%;
             background: var(--bg-2);
             border: 1px solid var(--border);
@@ -288,10 +288,15 @@
             margin-bottom: 18px;
         }
 
-        input[type=text]:focus {
+        input[type=text]:focus, select:focus {
             outline: none;
             border-color: var(--ok);
             box-shadow: 0 0 12px var(--ok-glow);
+        }
+
+        select option {
+            background: #0B101E;
+            color: var(--text);
         }
 
         .btn {
@@ -399,8 +404,20 @@
             <label for="nombre">Nombre Completo del Alumno</label>
             <input type="text" id="nombre" placeholder="Ej. Ana Torres" autocomplete="off" />
 
-            <label for="grupo">Grupo / Matrícula</label>
-            <input type="text" id="grupo" placeholder="Ej. 4A o A01234567" autocomplete="off" />
+            <label for="grupo">Matrícula</label>
+            <input type="text" id="grupo" placeholder="Ej. 1234567" autocomplete="off" />
+
+            <label for="musica-select">🎵 Banda Sonora de la Misión</label>
+            <select id="musica-select">
+                <option value="background.mp3">🚀 Sci-Fi Synth (Default)</option>
+                <option value="Another Winter.mp3">❄️ Another Winter</option>
+                <option value="Chrome Fracture.mp3">⚡ Chrome Fracture</option>
+                <option value="Los Malaventurados No Lloran.mp3">🎸 Los Malaventurados No Lloran</option>
+                <option value="MEOW.mp3">🐾 MEOW</option>
+                <option value="Starline Victory Run.mp3">🌌 Starline Victory Run</option>
+                <option value="憂鬱 - Sun.mp3">🌅 憂鬱 - Sun</option>
+                <option value="none">🔇 Sin Música (Silencio)</option>
+            </select>
 
             <div class="btn-row">
                 <button class="btn" id="btn-start-game">⚡ INICIAR MISIÓN →</button>
@@ -428,7 +445,8 @@
         <div class="modal-card" style="text-align:center;">
             <h2 class="pixel-title" style="color:var(--ok);">🚀 ¡SECTOR COMPLETADO! ¡BIEN HECHO!</h2>
             <p class="lead" id="sector-up-text">Has superado todos los retos de este nivel.</p>
-            <div style="font-family:var(--orbitron); font-size:22px; font-weight:900; color:var(--accent); margin:16px 0;" id="sector-up-title">
+            <div style="font-family:var(--orbitron); font-size:22px; font-weight:900; color:var(--accent); margin:16px 0;"
+                id="sector-up-title">
                 Siguiente Nivel: Sector 2
             </div>
             <div class="btn-row" style="justify-content:center; margin-top:18px;">
@@ -686,9 +704,10 @@
             constructor() {
                 this.ctx = null;
                 this.enabled = true;
+                this.currentSrc = AUDIO_CONFIG.bgmSrc;
 
                 // Reproductor MP3 para música de fondo BGM
-                this.bgm = new Audio(AUDIO_CONFIG.bgmSrc);
+                this.bgm = new Audio(this.currentSrc);
                 this.bgm.loop = true;
                 this.bgm.volume = 0.35;
 
@@ -696,6 +715,23 @@
                 this.shootAudio = new Audio(AUDIO_CONFIG.shootSrc);
                 this.hurtAudio = new Audio(AUDIO_CONFIG.hurtSrc);
                 this.victoryAudio = new Audio(AUDIO_CONFIG.victorySrc);
+            }
+
+            setBGM(src) {
+                if (this.bgm) {
+                    this.bgm.pause();
+                    this.bgm.currentTime = 0;
+                }
+                this.currentSrc = src;
+                if (!src || src === 'none') {
+                    return;
+                }
+                this.bgm = new Audio(src);
+                this.bgm.loop = true;
+                this.bgm.volume = 0.35;
+                if (this.enabled) {
+                    this.playBGM();
+                }
             }
 
             init() {
@@ -708,15 +744,17 @@
             }
 
             playBGM() {
-                if (!this.enabled) return;
+                if (!this.enabled || !this.bgm || this.currentSrc === 'none') return;
                 this.bgm.play().catch(e => {
-                    console.log("Nota: Guarda un archivo 'background.mp3' en esta misma carpeta para escuchar música de fondo.");
+                    console.log("Nota: No se pudo reproducir la música de fondo.", e);
                 });
             }
 
             stopBGM() {
-                this.bgm.pause();
-                this.bgm.currentTime = 0;
+                if (this.bgm) {
+                    this.bgm.pause();
+                    this.bgm.currentTime = 0;
+                }
             }
 
             toggle() {
@@ -1367,7 +1405,7 @@
             const panelY = 12;
             const panelW = W - 48;
             const hasCode = !!question.code;
-            
+
             const codeLines = hasCode ? question.code.split('\n') : [];
             const numLines = codeLines.length;
             const codeH = hasCode ? Math.max(72, numLines * 24 + 18) : 0;
@@ -1832,6 +1870,8 @@
         }
 
         document.getElementById('btn-start-game').onclick = () => {
+            const track = document.getElementById('musica-select').value;
+            sounds.setBGM(track);
             sounds.init();
             const nombre = document.getElementById('nombre').value.trim();
             const grupo = document.getElementById('grupo').value.trim();
@@ -1855,6 +1895,8 @@
             btnResume.style.display = 'inline-flex';
         }
         btnResume.onclick = () => {
+            const track = document.getElementById('musica-select').value;
+            sounds.setBGM(track);
             sounds.init();
             if (juego.cargarProgreso()) {
                 document.getElementById('modal-landing').classList.remove('active');
