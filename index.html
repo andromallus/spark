@@ -235,15 +235,27 @@
         }
 
         .modal-card {
-            background: var(--panel);
-            border: 2px solid var(--border-bright);
+            background: rgba(10, 18, 34, 0.92);
+            backdrop-filter: blur(16px);
+            border: 2px solid #00F0FF;
             border-radius: 16px;
             width: 100%;
             max-width: 680px;
-            padding: 28px;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), 0 0 35px var(--purple-glow);
+            padding: 32px;
+            box-shadow: 0 0 35px rgba(0, 240, 255, 0.25), inset 0 0 20px rgba(0, 240, 255, 0.08), 0 24px 60px rgba(0, 0, 0, 0.9);
+            position: relative;
+            overflow: hidden;
             transform: scale(0.95);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .modal-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: radial-gradient(circle at 90% 90%, rgba(0, 240, 255, 0.06), transparent 60%),
+                        linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+            pointer-events: none;
         }
 
         .modal-backdrop.active .modal-card {
@@ -253,71 +265,94 @@
         .pixel-title {
             font-family: var(--orbitron);
             font-weight: 900;
-            font-size: 20px;
-            color: var(--ok);
-            margin: 0 0 12px;
-            text-shadow: 0 0 12px var(--ok-glow);
-            letter-spacing: 0.05em;
+            font-size: 22px;
+            color: #00F0FF;
+            margin: 0 0 16px;
+            text-shadow: 0 0 16px rgba(0, 240, 255, 0.6);
+            letter-spacing: 0.06em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .lead {
-            color: var(--text-dim);
-            font-size: 15px;
-            line-height: 1.6;
-            margin: 0 0 18px;
+            color: #B2C6E2;
+            font-size: 14.5px;
+            line-height: 1.65;
+            margin: 0 0 22px;
         }
 
         label {
             display: block;
-            font-size: 12px;
-            color: var(--text-dim);
-            margin-bottom: 6px;
+            font-size: 11.5px;
+            color: #4DEEEA;
+            margin-bottom: 8px;
             font-family: var(--mono);
             text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 700;
         }
 
         input[type=text], select {
             width: 100%;
-            background: var(--bg-2);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 13px 16px;
-            border-radius: 8px;
+            background: rgba(6, 12, 24, 0.85);
+            border: 1.5px solid #1C3B60;
+            color: #EAF4FC;
+            padding: 14px 18px;
+            border-radius: 10px;
             font-size: 15px;
             font-family: var(--sans);
-            margin-bottom: 18px;
+            margin-bottom: 20px;
+            transition: all 0.25s ease;
         }
 
         input[type=text]:focus, select:focus {
             outline: none;
-            border-color: var(--ok);
-            box-shadow: 0 0 12px var(--ok-glow);
+            border-color: #00F0FF;
+            box-shadow: 0 0 18px rgba(0, 240, 255, 0.45);
+            background: rgba(8, 16, 32, 0.95);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300F0FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 42px;
         }
 
         select option {
             background: #0B101E;
-            color: var(--text);
+            color: #EAF4FC;
+            padding: 10px;
         }
 
         .btn {
             font-family: var(--orbitron);
-            font-weight: 700;
-            font-size: 13px;
-            background: var(--ok);
-            color: #030C0A;
-            border: none;
-            padding: 14px 24px;
-            border-radius: 8px;
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(94, 234, 212, 0.35));
+            color: #00F0FF;
+            border: 1.5px solid #00F0FF;
+            padding: 15px 32px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), inset 0 0 10px rgba(0, 240, 255, 0.15);
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px var(--ok-glow);
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.3), rgba(94, 234, 212, 0.5));
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.6), inset 0 0 15px rgba(0, 240, 255, 0.3);
+            color: #FFFFFF;
         }
 
         .btn.secondary {
@@ -410,6 +445,7 @@
             <label for="musica-select">🎵 Banda Sonora de la Misión</label>
             <select id="musica-select">
                 <option value="background.mp3">🚀 Sci-Fi Synth (Default)</option>
+                <option value="Slow.mp3">🌙 Slow (Lo-Fi / Relax)</option>
                 <option value="Another Winter.mp3">❄️ Another Winter</option>
                 <option value="Chrome Fracture.mp3">⚡ Chrome Fracture</option>
                 <option value="Los Malaventurados No Lloran.mp3">🎸 Los Malaventurados No Lloran</option>
@@ -421,7 +457,6 @@
 
             <div class="btn-row">
                 <button class="btn" id="btn-start-game">⚡ INICIAR MISIÓN →</button>
-                <button class="btn secondary" id="btn-resume-game" style="display:none;">📂 Reanudar Partida</button>
             </div>
         </div>
     </div>
@@ -1888,28 +1923,6 @@
             resetearEstadoPuertas();
             reiniciarTemporizadorPregunta();
             startAnimationLoop();
-        };
-
-        const btnResume = document.getElementById('btn-resume-game');
-        if (localStorage.getItem('escape_js_starship_runner_v2')) {
-            btnResume.style.display = 'inline-flex';
-        }
-        btnResume.onclick = () => {
-            const track = document.getElementById('musica-select').value;
-            sounds.setBGM(track);
-            sounds.init();
-            if (juego.cargarProgreso()) {
-                document.getElementById('modal-landing').classList.remove('active');
-                actualizarHUD();
-                if (!juego.finished) {
-                    iniciarReloj();
-                    resetearEstadoPuertas();
-                    reiniciarTemporizadorPregunta();
-                } else {
-                    mostrarPantallaFinal();
-                }
-                startAnimationLoop();
-            }
         };
 
         async function finalizarJuego() {
